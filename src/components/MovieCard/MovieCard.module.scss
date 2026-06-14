@@ -137,6 +137,39 @@
   }
 }
 
+// ── List view variant ────────────────────────────────────────────────────────
+
+.cardList {
+  flex-direction: row;
+  align-items: flex-start;
+
+  &:hover {
+    transform: none;
+  }
+
+  .poster {
+    width: 120px;
+    flex-shrink: 0;
+    aspect-ratio: 2 / 3;
+  }
+
+  .body {
+    padding: 16px 18px;
+    justify-content: center;
+  }
+
+  .title {
+    font-size: 1rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .overview {
+    -webkit-line-clamp: 4;
+  }
+}
+
+// ── Details button ───────────────────────────────────────────────────────────
+
 .button {
   position: relative;
   overflow: hidden;

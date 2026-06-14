@@ -13,9 +13,10 @@ const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
 interface Props {
   movie: Movie
   index: number
+  view?: 'grid' | 'list'
 }
 
-export default function MovieCard({ movie, index }: Props) {
+export default function MovieCard({ movie, index, view = 'grid' }: Props) {
   const hasHydrated = useWatchedStore(state => state._hasHydrated)
   const watchedIds = useWatchedStore(state => state.watchedIds)
   const toggleWatched = useWatchedStore(state => state.toggleWatched)
@@ -44,7 +45,7 @@ export default function MovieCard({ movie, index }: Props) {
 
   return (
     <article
-      className={styles.card}
+      className={`${styles.card}${view === 'list' ? ` ${styles.cardList}` : ''}`}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       <div className={styles.poster}>

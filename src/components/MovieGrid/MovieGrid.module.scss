@@ -29,3 +29,10 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  grid-template-columns: unset;
+}
