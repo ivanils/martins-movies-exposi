@@ -134,7 +134,26 @@ I also made a manual UI change — replacing the checkmark SVG on the toggle but
 I reviewed and confirmed that the `navigate` function correctly used `new URLSearchParams(searchParams.toString())` before setting the page param — preserving query and genre on every page change. I decided upfront to use the HTML disabled attribute on the arrow buttons rather than just styling them as disabled, ensuring keyboard and screen reader users can't activate them at boundaries. I knew from reading the TMDB documentation that requesting beyond page 500 returns an error, so I enforced this ceiling at the data layer rather than leaving it to the pagination component to handle. The `Math.min(data.total_pages, 500)` cap was applied in `page.tsx` to respect the hard limit.
 
 ### Phase 7 — Animations & Polish
-_To be completed._
+
+Phase 7 covered several independent surface areas so I worked in rounds rather than a single prompt.
+
+**NavBar:** I prompted: *"Create a sticky NavBar client component with the company logo on the left, navigation links absolutely centred, and a login button on the right. The links should set URL sort params so they are functional, not decorative. Wrap it in Suspense in layout.tsx because it uses useSearchParams."*
+
+Two issues required correction. First, the logo was invisible — Claude Code had wrapped the `<img>` in a container with `background: var(--color-bg-card)`, which in the light theme is `#ffffff`, making a white PNG logo indistinguishable from the background. I removed the wrapper background entirely. Second, the nav links were not visually centred — they sat left-aligned because the logo was pushing them right. I fixed this by applying `position: absolute; left: 50%; transform: translateX(-50%)` to the links container, decoupling the centring from the logo width entirely. I also replaced `next/image` with a plain `<img>` tag for the logo — `next/image` with `style={{ width: 'auto' }}` caused the image to collapse to zero width in practice, and `next/image` adds no meaningful benefit for a small static locally-hosted logo that doesn't need responsive resizing.
+
+**HeroBanner:** I prompted: *"Upgrade the HeroBanner to cycle through an array of backdrop paths passed as props. Add a Ken Burns zoom-and-pan CSS animation and use a slideKey counter as the React key on the animated element so the animation restarts on every slide change even when the same backdrop appears twice."* The output was correct. After reviewing in the browser I adjusted `.featuredTitle` to `font-size: 1.5rem; font-weight: 100` for a lighter, more cinematic feel, removed an unnecessary paragraph Claude Code had added below the title, increased the `.logoBg` backdrop blur to `12px`, and darkened its tint to `rgba(8, 4, 18, 0.62)` so the logo card reads clearly against bright backdrops.
+
+**FilterBar and Sort:** The sort implementation required one correction in `lib/tmdb.ts`: when `sort_by=vote_average.desc` is active, TMDB's discover endpoint surfaces obscure films with a single 10/10 vote. I added a `vote_count.gte=200` guard specifically for that sort value, applied conditionally in `getPopularMovies` and `getMoviesByGenre`. I also added two extra breakpoints in `FilterBar.module.scss` — `justify-content: space-between` at 500px and `justify-content: start` at 400px — to correct alignment issues on very small screens the generated styles didn't handle.
+
+**Trailer feature:** I implemented the Route Handler, play button and TrailerModal on the first pass. I verified that `position: fixed` on the modal worked correctly — the card's hover animation uses `transform: translateY(-4px)` which creates a new CSS stacking context and would prevent any descendant's `position: fixed` from being relative to the viewport. Using `createPortal` to `document.body` bypasses this entirely.
+
+**Mobile drawer:** I prompted: *"Add a hamburger button that appears on mobile and opens a slide-in drawer from the right via createPortal. The drawer needs an overlay, Escape key handling, and a body scroll lock while open."* The output was correct without corrections. I increased the `.playBtn` size to `55×55px` and added a `drop-shadow` filter in the brand purple, and widened the list-view poster to `140px` after reviewing proportions at that breakpoint.
+
+**SplashScreen:** The first draft had a timing bug — the `doneTimer` that unmounts the component was firing at 2500ms while `fadeTimer` that triggers the opacity transition was set at 3500ms, meaning the component was removed from the DOM before the transition could start. I corrected the logic so `fadeTimer` fires first and `doneTimer` fires only after the CSS transition has had time to complete. I tuned the final values to `fadeTimer` at 1750ms and `doneTimer` at 2500ms.
+
+**ScrollToTop:** I prompted: *"Add a ScrollToTop button fixed at bottom-right that appears after 400px of scroll and scrolls the window to the top smoothly on click."* The output was correct and required no changes.
+
+**loading.tsx** was reworked to match the SplashScreen aesthetic — replacing the plain skeleton grid with an animated logo splash with spring entrance, delayed tagline fade-up, and an indeterminate progress bar. I adjusted the `slide` keyframe values on the progress bar to `translateX(-240%)` → `translateX(600%)` to get the travel distance right visually.
 
 ---
 

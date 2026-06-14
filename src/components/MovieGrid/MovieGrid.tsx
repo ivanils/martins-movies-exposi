@@ -4,9 +4,10 @@ import styles from './MovieGrid.module.scss'
 
 interface Props {
   movies: Movie[]
+  view?: 'grid' | 'list'
 }
 
-export default function MovieGrid({ movies }: Props) {
+export default function MovieGrid({ movies, view = 'grid' }: Props) {
   if (movies.length === 0) {
     return (
       <section className={styles.wrapper}>
@@ -17,9 +18,9 @@ export default function MovieGrid({ movies }: Props) {
 
   return (
     <section className={styles.wrapper}>
-      <div className={styles.grid}>
+      <div className={`${styles.grid}${view === 'list' ? ` ${styles.list}` : ''}`}>
         {movies.map((movie, index) => (
-          <MovieCard key={movie.id} movie={movie} index={index} />
+          <MovieCard key={movie.id} movie={movie} index={index} view={view} />
         ))}
       </div>
     </section>

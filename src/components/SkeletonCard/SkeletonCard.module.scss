@@ -1,2 +1,75 @@
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-skeleton-base) 25%,
+    var(--color-skeleton-shine) 50%,
+    var(--color-skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
 .card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--color-shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.poster {
+  @extend .shimmer;
+  aspect-ratio: 2 / 3;
+  border-radius: 0;
+  width: 100%;
+}
+
+.body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+}
+
+.titleBar {
+  @extend .shimmer;
+  height: 14px;
+  width: 85%;
+}
+
+.titleBarShort {
+  @extend .shimmer;
+  height: 14px;
+  width: 55%;
+}
+
+.metaBar {
+  @extend .shimmer;
+  height: 11px;
+  width: 40%;
+}
+
+.overviewBar {
+  @extend .shimmer;
+  height: 11px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.overviewBarShort {
+  @extend .shimmer;
+  height: 11px;
+  width: 70%;
+}
+
+.buttonBar {
+  @extend .shimmer;
+  height: 32px;
+  width: 80px;
+  margin-top: 6px;
+  border-radius: 4px;
 }

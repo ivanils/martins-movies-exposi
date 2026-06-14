@@ -89,11 +89,21 @@
 }
 
 .arrowLeft {
-  left: -40px;
+  left: 0;
 }
 
 .arrowRight {
-  right: -40px;
+  right: 0;
+}
+
+@media (max-width: 639px) {
+  .arrow {
+    display: none;
+  }
+
+  .strip {
+    padding: 0 0 8px;
+  }
 }
 
 .item {
