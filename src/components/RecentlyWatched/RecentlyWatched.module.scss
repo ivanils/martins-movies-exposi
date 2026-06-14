@@ -1,0 +1,151 @@
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1.5s ease, transform 1.2s ease;
+  &::highlight {
+    background: transparent;
+  }
+}
+
+.sectionHidden {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: opacity 1.5s ease, transform 1.2s ease;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  letter-spacing: 0;
+}
+
+.stripWrapper {
+  position: relative;
+}
+
+.strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 36px 8px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  scrollbar-width: none;
+}
+
+.arrow {
+  position: absolute;
+  top: calc(50% - 37px);
+  transform: translateY(-50%);
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:all 0.5s ease;
+  z-index: 1;
+  transform:  scale(1);
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  &:hover {
+    transition:all 0.5s ease;
+    transform: scale(1.1);
+    background: var(--color-accent-hover);
+  }
+}
+
+.arrowVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.arrowLeft {
+  left: 0;
+}
+
+.arrowRight {
+  right: 0;
+}
+
+@media (max-width: 639px) {
+  .arrow {
+    display: none;
+  }
+
+  .strip {
+    padding: 0 0 8px;
+  }
+}
+
+.item {
+  flex-shrink: 0;
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &:hover .title {
+    color: var(--color-accent);
+  }
+}
+
+.poster {
+  position: relative;
+  width: 80px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-skeleton-base);
+  flex-shrink: 0;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color var(--transition-default);
+}

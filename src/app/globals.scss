@@ -1,0 +1,97 @@
+:root {
+  // Backgrounds
+  --color-bg-page:           #f0f4f8;
+  --color-bg-card:           #ffffff;
+  --color-bg-footer:         #3d4255;
+
+  // Accent — purple throughout
+  --color-accent:            #aa2ff7;
+  --color-accent-hover:      #a60ccd;
+
+  // Header gradient
+  --color-header-from:       #7b2ff7;
+  --color-header-to:         #e040a0;
+
+  // Text
+  --color-text-primary:      #1a1a2e;
+  --color-text-secondary:    #666680;
+  --color-text-on-accent:    #ffffff;
+  --color-text-footer:       #ffffff;
+
+  // Borders & shadows
+  --color-border:            #e2e8f0;
+  --color-shadow-card:       rgba(0, 0, 0, 0.08);
+  --color-shadow-card-hover: rgba(0, 0, 0, 0.16);
+
+  // Skeleton shimmer
+  --color-skeleton-base:     #e2e8f0;
+  --color-skeleton-shine:    #f8fafc;
+
+  // Transitions
+  --transition-default:      0.2s ease;
+  --transition-card:         0.3s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// ─── Keyframes ───────────────────────────────────────────────────────────────
+
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes badgeIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

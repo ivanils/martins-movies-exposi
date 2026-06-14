@@ -134,3 +134,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+ARCHITECTURE.md
+CLAUDE.md
+next-env.d.ts
+`nnext-env.d.ts
