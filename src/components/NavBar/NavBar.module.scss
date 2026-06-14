@@ -20,16 +20,15 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--color-accent);
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-decoration: none;
   flex-shrink: 0;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  padding: 5px 10px;
+  transition: background var(--transition-default);
 
-  svg {
-    width: 24px;
-    height: 24px;
+  &:hover {
+    background: rgba(255, 255, 255, 1);
   }
 }
 

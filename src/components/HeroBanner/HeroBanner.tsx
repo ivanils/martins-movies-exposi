@@ -51,8 +51,17 @@ export default function HeroBanner({ backdropPaths }: Props) {
       })}
       <div className={styles.overlay} aria-hidden="true" />
       <div className={styles.content}>
-        <h1 className={styles.title}>Martin&apos;s Movies</h1>
-        <p className={styles.subtitle}>Discover your next favourite film</p>
+        <div className={styles.logoBg}>
+          <Image
+            src="/martins-movies-logo.png"
+            alt="Martin's Movies"
+            width={280}
+            height={86}
+            style={{ height: '72px', width: 'auto' }}
+            priority
+          />
+          <p className={styles.tagline}>Discover your next favourite film</p>
+        </div>
       </div>
     </section>
   )

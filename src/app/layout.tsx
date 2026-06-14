@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: "Martin's Movies",
   description: 'Discover and track movies powered by TMDB',
+  icons: { icon: '/icon.png' },
 }
 
 export default function RootLayout({
