@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import NavBar from '@/components/NavBar/NavBar'
+import ScrollToTop from '@/components/ScrollToTop/ScrollToTop'
 import './globals.scss'
 import styles from './layout.module.scss'
 
@@ -25,6 +26,7 @@ export default function RootLayout({
           <NavBar />
         </Suspense>
         <main className={styles.main}>{children}</main>
+        <ScrollToTop />
         <footer className={styles.footer}>
           <p className={styles.footerText}>
             © {new Date().getFullYear()} Martin&apos;s Movies · Powered by TMDB

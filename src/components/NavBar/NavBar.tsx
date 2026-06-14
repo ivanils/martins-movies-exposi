@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import styles from './NavBar.module.scss'
 
@@ -19,13 +18,11 @@ export default function NavBar() {
     <nav className={styles.nav}>
       <div className={styles.inner}>
         <Link href="/" className={styles.logo}>
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/martins-movies-logo.png"
             alt="Martin's Movies"
-            width={150}
-            height={46}
-            style={{ height: '38px', width: 'auto' }}
-            priority
+            className={styles.logoImg}
           />
         </Link>
 
