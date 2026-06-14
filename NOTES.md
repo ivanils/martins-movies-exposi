@@ -120,14 +120,18 @@ Two things I caught and corrected during review: the `SearchBar.module.scss` use
 
 I prompted: *"Create a Zustand store with persist middleware for watched movies. The store must hold both watchedIds as number[] and watchedMovies as WatchedMovie[] so the Recently Watched strip can render without extra API calls. toggleWatched should add to the front of both arrays so newest appears first."*
 
-The store was implemented correctly. The most significant issue was a UX bug I caught during browser testing — clicking the watched toggle didn't update the badge or button state visually until a page refresh. I diagnosed that the component-level mount guards were preventing Zustand from triggering re-renders correctly. I directed the fix: *"Move the hydration guard into the store itself using onRehydrateStorage to set a _hasHydrated flag, then replace all component-level mount guards with a subscription to that flag. Also subscribe directly to watchedIds array rather than calling isWatched() as a derived selector."* This fixed the reactivity completely.
+The store was implemented correctly on the first pass. The first issue I caught was a runtime error in client components — `RecentlyWatched` and `MovieCard` had both been importing `IMAGE_BASE_URL` from `@/lib/tmdb`, which chains through `env.ts` and throws in the browser because `TMDB_API_KEY` is not a public environment variable. I extracted `IMAGE_BASE_URL` as a local constant in each client component to break the server-only import chain.
 
-I also caught that importing `IMAGE_BASE_URL` from `@/lib/tmdb` in client components caused a runtime error — `tmdb.ts` chains through `env.ts` which throws in the browser. I extracted `IMAGE_BASE_URL` with no server-only dependencies.
+The most significant issue was a UX bug caught during browser testing: clicking the watched toggle did not update the badge or button state visually until a full page refresh. The root cause was two separate problems. First, the component-level mount guards `(useState(false) + useEffect(() => setMounted(true), []))` were being used to prevent SSR hydration mismatches, but they also delayed the UI from reacting to store changes. I fixed it moving the hydration guard into the store itself using Zustand's `onRehydrateStorage` callback to set a `_hasHydrated` flag, then I replaced all component-level guards with a subscription to `state._hasHydrated`. This means hydration state is managed once and all components react simultaneously the moment localStorage is read.
 
-Also additional UI changes were made manually — replacing the checkmark toggle icon with an eye icon, which is more intuitive for a "mark as seen" interaction on a movie app.
+Second, `MovieCard` was subscribing to `isWatched` as a function selector — selecting a function reference that never changes, so Zustand had nothing to diff and never triggered a re-render. The fix was to subscribe directly to `watchedIds: number[]` and call `.includes(movie.id)` inline: `const watched = hasHydrated && watchedIds.includes(movie.id)`. Subscribing to the array itself gives Zustand a value to compare on every toggle, triggering the re-render immediately.
+
+I also made a manual UI change — replacing the checkmark SVG on the toggle button with an eye icon, which is more intuitive for a "mark as seen" interaction on a movie app.
 
 ### Phase 6 — Pagination
-_To be completed._
+*I prompted Claude Code: "Implement a Pagination component using the usePagination hook. It must show Previous, up to 5 page numbers with ellipsis, and Next. Active page is a filled purple circle. All navigation must preserve existing query and genre searchParams and only change page. Include aria-current on the active page and aria-label on all controls."*
+
+I reviewed and confirmed that the `navigate` function correctly used `new URLSearchParams(searchParams.toString())` before setting the page param — preserving query and genre on every page change. I decided upfront to use the HTML disabled attribute on the arrow buttons rather than just styling them as disabled, ensuring keyboard and screen reader users can't activate them at boundaries. I knew from reading the TMDB documentation that requesting beyond page 500 returns an error, so I enforced this ceiling at the data layer rather than leaving it to the pagination component to handle. The `Math.min(data.total_pages, 500)` cap was applied in `page.tsx` to respect the hard limit.
 
 ### Phase 7 — Animations & Polish
 _To be completed._
