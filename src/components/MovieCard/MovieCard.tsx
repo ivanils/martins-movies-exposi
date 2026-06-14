@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import type { Movie } from '@/types/tmdb'
 import { useWatchedStore } from '@/store/watchedStore'
@@ -21,8 +22,25 @@ export default function MovieCard({ movie, index }: Props) {
 
   const watched = hasHydrated && watchedIds.includes(movie.id)
 
+  const [detailsLoading, setDetailsLoading] = useState(false)
+
   const year = movie.release_date ? movie.release_date.slice(0, 4) : '—'
   const rating = movie.vote_average.toFixed(1)
+
+  const handleDetails = async () => {
+    if (detailsLoading) return
+    setDetailsLoading(true)
+    try {
+      const res = await fetch(`/api/movie/${movie.id}`)
+      const { imdb_id } = await res.json() as { imdb_id: string | null }
+      const url = imdb_id
+        ? `https://www.imdb.com/title/${imdb_id}`
+        : `https://www.themoviedb.org/movie/${movie.id}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setDetailsLoading(false)
+    }
+  }
 
   return (
     <article
@@ -50,17 +68,17 @@ export default function MovieCard({ movie, index }: Props) {
           aria-label={watched ? 'Mark as unwatched' : 'Mark as watched'}
         >
           <svg
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  strokeWidth={2}
-  strokeLinecap="round"
-  strokeLinejoin="round"
-  aria-hidden="true"
->
-  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-  <circle cx="12" cy="12" r="3" />
-</svg>
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
         </button>
       </div>
 
@@ -71,8 +89,13 @@ export default function MovieCard({ movie, index }: Props) {
           <span className={styles.year}>{year}</span>
         </div>
         <p className={styles.overview}>{movie.overview}</p>
-        <button className={styles.button}>
-          <span>Details</span>
+        <button
+          className={styles.button}
+          onClick={handleDetails}
+          disabled={detailsLoading}
+          aria-label={`View details for ${movie.title}`}
+        >
+          <span>{detailsLoading ? '···' : 'Details'}</span>
         </button>
       </div>
     </article>
