@@ -1,2 +1,105 @@
 .card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--color-shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-card), box-shadow var(--transition-card);
+  animation: cardEntrance 0.4s ease both;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--color-shadow-card-hover);
+  }
+}
+
+.poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--color-skeleton-base);
+}
+
+.body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 6px;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.rating {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.year {
+  color: var(--color-text-secondary);
+}
+
+.overview {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.button {
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color var(--transition-default);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--color-accent-hover);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-default);
+  }
+
+  &:hover::before {
+    transform: scaleX(1);
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
 }
