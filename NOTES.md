@@ -101,7 +101,10 @@ For the TMDB API client, Claude Code generated the `fetchTMDB` generic utility a
 The `globals.scss` output was complete and correct — all five keyframes present, all CSS custom properties matching the spec exactly. I verified that no component SCSS file contained hardcoded hex values, only `var()` references. In `MovieCard.tsx`, Claude Code had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported — I caught this, removed the local constant and replaced it with the shared import. I also confirmed the `aspect-ratio: 2/3` was applied on the poster container and that the `::before` button sweep animation was implemented correctly with `transform-origin: left` and `scaleX` transition as specified.
 
 ### Phase 4 — Search & Filters
-_To be completed._
+
+All Phase 4 files produce to a high standard. The `useDebounce` hook was implemented correctly as a generic `<T>` utility with proper cleanup via `clearTimeout`. The `SearchBar` component showed particularly strong output — it initialised query state from existing `searchParams` so the search value persists on page refresh, included an `isFirstRender` ref guard to prevent overwriting URL params on initial mount, and applied `aria-label` to both the input and the genre select. The `page.tsx` update correctly used `Promise.all` to fetch movies and genres in parallel rather than sequentially, saving a full round-trip on every page load.
+
+Two things I caught and corrected during review: the `SearchBar.module.scss` used `color-mix()` for the focus glow ring, which is modern CSS I verified is supported across all current target browsers and kept as-is — it was actually a better implementation than a plain `rgba()` fallback. More importantly, after testing the search in the browser I found the 500ms debounce delay felt noticeably sluggish while typing. I overrode this and reduced it to 250ms, which I judged to be the better balance between UX responsiveness and avoiding excessive API calls. I also evaluated adding an explicit submit button to the search bar but decided against it — the debounce-on-type pattern is more natural for a browsing interface and the Enter key already triggers the search.
 
 ### Phase 5 — Watched State
 _To be completed._
