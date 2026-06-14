@@ -97,7 +97,8 @@ I provided the exact interface shapes and asked Claude Code to implement `src/ty
 For the TMDB API client, Claude Code generated the `fetchTMDB` generic utility and all five API functions correctly. I verified the `revalidate: 3600` cache option was applied at the fetch level rather than the route level — the correct placement in the App Router. I also reviewed the Route Handlers and corrected the page parameter parsing in the movies handler, which had used `parseInt` without a fallback and would have passed `NaN` to the API if the param was missing. I changed it to `Number(searchParams.get('page') ?? '1')` to ensure a safe default. The search handler included an unprompted guard for empty query strings returning a safe empty response — a good defensive pattern I kept as-is.
 
 ### Phase 3 — Movie Grid & Cards
-_To be completed._
+
+The `globals.scss` output was complete and correct — all five keyframes present, all CSS custom properties matching the spec exactly. I verified that no component SCSS file contained hardcoded hex values, only `var()` references. In `MovieCard.tsx`, Claude Code had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported — I caught this, removed the local constant and replaced it with the shared import. I also confirmed the `aspect-ratio: 2/3` was applied on the poster container and that the `::before` button sweep animation was implemented correctly with `transform-origin: left` and `scaleX` transition as specified.
 
 ### Phase 4 — Search & Filters
 _To be completed._
