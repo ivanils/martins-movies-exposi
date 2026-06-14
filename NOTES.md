@@ -77,6 +77,9 @@ All TMDB interaction goes through a single typed client rather than scattered `f
 ### Environment Validation at Startup
 `src/lib/env.ts` validates that `TMDB_API_KEY` exists and throws a descriptive error immediately if it doesn't. This fails fast at startup rather than silently returning `undefined` and causing a confusing runtime error deep in a fetch call.
 
+### CI/CD with GitHub Actions
+A GitHub Actions workflow runs on every push to `develop` and `main` and on every pull request. It runs ESLint, TypeScript type checking via `tsc --noEmit`, and a full production build in sequence. This means broken code, type errors, or lint violations are caught before they reach `develop` or `main`. The TMDB API key is stored as a GitHub Actions secret and injected only during the build step.
+
 ### Component Structure
 Each component lives in its own folder with a co-located SCSS Module. This mirrors the structure used in professional Next.js projects and makes it straightforward to add tests, stories, or sub-components alongside the main file.
 
@@ -84,30 +87,44 @@ Each component lives in its own folder with a co-located SCSS Module. This mirro
 
 ## c. AI Tool Usage
 
-I used **Claude Code** (Anthropic's CLI coding assistant) throughout the build. The brief encourages AI tools, and Claude Code is my preferred tool as it integrates directly into the terminal workflow alongside git and the dev server. Throughout the build I treated it as a fast first-draft generator, not a decision-maker — every file it produced was reviewed before committing, and architectural decisions were made before prompting, not delegated to the tool.
+I used **Claude Code** (Anthropic's CLI coding assistant) throughout the build. I maintained a running log of prompts and corrections as I worked and consolidated the most representative examples below. Throughout the build I treated Claude Code as a fast first-draft generator, not a decision-maker — every file it produced was reviewed before committing and all architectural decisions were made before prompting not delegated to the tool.
 
 ### Phase 1 — Scaffold & Folder Structure
 
-I prompted Claude Code to run `create-next-app` with the correct flags (TypeScript, App Router, no Tailwind) and then create all component shells and folder structure from a detailed specification I provided. It produced the `src/app/` structure and the `types/` folder correctly, but missed the entire `src/components/`, `src/hooks/`, `src/lib/`, and `src/store/` directories — roughly half the planned architecture. I identified the gaps, listed the missing files explicitly, and instructed it to create them. It also generated an unsolicited `ARCHITECTURE.md` file that wasn't part of the plan — I instructed it to delete it before committing.
+My initial prompt was: *"Run create-next-app with TypeScript, App Router, ESLint, src directory, and no Tailwind. Then create the following folder structure with empty shell files..."* followed by the full component and hook list.
+
+Claude Code produced the `src/app/` structure and the `types/` folder correctly, but missed the entire `src/components/`, `src/hooks/`, `src/lib/` and `src/store/` directories — roughly half the planned architecture. I identified the gaps and followed up with: *"You missed the following directories. Create empty shell files for each..."* listing them explicitly. It also generated an unsolicited `ARCHITECTURE.md` file — I instructed it to delete this before committing as it wasn't part of the plan.
 
 ### Phase 2 — API Layer
 
-I provided the exact interface shapes and asked Claude Code to implement `src/types/tmdb.ts`. The output was correct overall, but I caught that `getGenres` in the API client was returning the raw `{ genres: Genre[] }` object from TMDB rather than unwrapping it to `Genre[]` as the rest of the app expected. This would have caused a type error the moment any component tried to map over the result. I instructed Claude Code to fix the return type to `Promise<Genre[]>` and chain `.then(data => data.genres)` on the fetch call.
+I prompted: *"Implement src/types/tmdb.ts with the following interfaces exactly as specified..."* and *"Create a typed TMDB API client in src/lib/tmdb.ts. All fetches must be server-side only using Next.js fetch with revalidate: 3600. The API key must never be used in any client-side context."*
 
+The output was largely correct but I caught that `getGenres` was returning the raw `{ genres: Genre[] }` object from TMDB rather than unwrapping it to `Genre[]` as the rest of the app expected. I instructed: *"Fix getGenres — change the return type to Promise<Genre[]> and unwrap the response with .then(data => data.genres)."* 
 For the TMDB API client, Claude Code generated the `fetchTMDB` generic utility and all five API functions correctly. I verified the `revalidate: 3600` cache option was applied at the fetch level rather than the route level — the correct placement in the App Router. I also reviewed the Route Handlers and corrected the page parameter parsing in the movies handler, which had used `parseInt` without a fallback and would have passed `NaN` to the API if the param was missing. I changed it to `Number(searchParams.get('page') ?? '1')` to ensure a safe default. The search handler included an unprompted guard for empty query strings returning a safe empty response — a good defensive pattern I kept as-is.
 
 ### Phase 3 — Movie Grid & Cards
 
-The `globals.scss` output was complete and correct — all five keyframes present, all CSS custom properties matching the spec exactly. I verified that no component SCSS file contained hardcoded hex values, only `var()` references. In `MovieCard.tsx`, Claude Code had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported — I caught this, removed the local constant and replaced it with the shared import. I also confirmed the `aspect-ratio: 2/3` was applied on the poster container and that the `::before` button sweep animation was implemented correctly with `transform-origin: left` and `scaleX` transition as specified.
+I prompted: *"Implement MovieCard with a poster using Next.js Image with fill and sizes props, aspect-ratio: 2/3 on the poster container and a DETAILS button with a ::before sweep animation using scaleX and transform-origin: left. All colours must use CSS variables — no hardcoded hex values anywhere in the SCSS."*
+
+The `globals.scss` and component files were produced correctly. I caught that `MovieCard.tsx` had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported. I removed the local constant and use the shared import instead — a small but important consistency fix.
 
 ### Phase 4 — Search & Filters
 
-All Phase 4 files produce to a high standard. The `useDebounce` hook was implemented correctly as a generic `<T>` utility with proper cleanup via `clearTimeout`. The `SearchBar` component showed particularly strong output — it initialised query state from existing `searchParams` so the search value persists on page refresh, included an `isFirstRender` ref guard to prevent overwriting URL params on initial mount, and applied `aria-label` to both the input and the genre select. The `page.tsx` update correctly used `Promise.all` to fetch movies and genres in parallel rather than sequentially, saving a full round-trip on every page load.
+I prompted: *"Create a SearchBar client component that reads initial state from searchParams so the search persists on refresh, debounces input by 500ms, and syncs query, genre, and page to the URL. Page must reset to 1 whenever query or genre changes. Do not use any React state for the search value beyond what's needed for the controlled input."*
+
+The `useDebounce` hook was implemented correctly as a generic `<T>` utility with proper cleanup via `clearTimeout`. The `SearchBar` component showed particularly strong output — it initialised query state from existing `searchParams` so the search value persists on page refresh, included an `isFirstRender` ref guard to prevent overwriting URL params on initial mount, and applied `aria-label` to both the input and the genre select. The `page.tsx` update correctly used `Promise.all` to fetch movies and genres in parallel rather than sequentially, saving a full round-trip on every page load.
 
 Two things I caught and corrected during review: the `SearchBar.module.scss` used `color-mix()` for the focus glow ring, which is modern CSS I verified is supported across all current target browsers and kept as-is — it was actually a better implementation than a plain `rgba()` fallback. More importantly, after testing the search in the browser I found the 500ms debounce delay felt noticeably sluggish while typing. I overrode this and reduced it to 250ms, which I judged to be the better balance between UX responsiveness and avoiding excessive API calls. I also evaluated adding an explicit submit button to the search bar but decided against it — the debounce-on-type pattern is more natural for a browsing interface and the Enter key already triggers the search.
 
 ### Phase 5 — Watched State
-_To be completed._
+
+I prompted: *"Create a Zustand store with persist middleware for watched movies. The store must hold both watchedIds as number[] and watchedMovies as WatchedMovie[] so the Recently Watched strip can render without extra API calls. toggleWatched should add to the front of both arrays so newest appears first."*
+
+The store was implemented correctly. The most significant issue was a UX bug I caught during browser testing — clicking the watched toggle didn't update the badge or button state visually until a page refresh. I diagnosed that the component-level mount guards were preventing Zustand from triggering re-renders correctly. I directed the fix: *"Move the hydration guard into the store itself using onRehydrateStorage to set a _hasHydrated flag, then replace all component-level mount guards with a subscription to that flag. Also subscribe directly to watchedIds array rather than calling isWatched() as a derived selector."* This fixed the reactivity completely.
+
+I also caught that importing `IMAGE_BASE_URL` from `@/lib/tmdb` in client components caused a runtime error — `tmdb.ts` chains through `env.ts` which throws in the browser. I extracted `IMAGE_BASE_URL` with no server-only dependencies.
+
+Also additional UI changes were made manually — replacing the checkmark toggle icon with an eye icon, which is more intuitive for a "mark as seen" interaction on a movie app.
 
 ### Phase 6 — Pagination
 _To be completed._
@@ -134,9 +151,6 @@ The genre filter could be extended with year range sliders, minimum rating thres
 
 ### Cross-Device Watched Sync
 Currently watched state is browser-local. With a backend (even a lightweight one like Supabase or PlanetScale), watched state could sync across devices for logged-in users. The Zustand store is already structured in a way that would make this a clean migration — swap the `persist` localStorage middleware for an API-backed store without touching the UI components.
-
-### CI/CD with GitHub Actions
-I would add a GitHub Actions workflow to run linting (`eslint`) and type checking (`tsc --noEmit`) on every pull request, preventing broken code from reaching `develop` or `main`. Vercel's preview deployments already handle visual checking, but automated type and lint checks would complete the pipeline.
 
 ### Performance: Image Optimisation
 The current setup uses TMDB's `w500` image size for all contexts. With more time I would implement responsive image sizing using Next.js `<Image>` `sizes` prop — serving smaller images on mobile and larger on desktop — reducing bandwidth on low-end devices.
