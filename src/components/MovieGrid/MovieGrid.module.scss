@@ -3,6 +3,9 @@
   margin: 0 auto;
   padding: 40px 24px;
   animation: pageFadeIn 0.3s ease both;
+  @media (max-width: 639px) {
+    padding: 40px 15px;
+  }
 }
 
 .empty {
@@ -22,6 +25,7 @@
   }
 
   @media (max-width: 639px) {
+    gap: 12px;
     grid-template-columns: repeat(2, 1fr);
   }
 }
