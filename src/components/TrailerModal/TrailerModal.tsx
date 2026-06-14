@@ -14,11 +14,12 @@ export default function TrailerModal({ trailerKey, title, onClose }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const frame = window.requestAnimationFrame(() => setMounted(true))
     document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     return () => {
+      window.cancelAnimationFrame(frame)
       document.body.style.overflow = ''
       document.removeEventListener('keydown', onKey)
     }
