@@ -20,8 +20,8 @@ export const searchMovies = (query: string, page: number): Promise<TMDBPaginated
 export const getMoviesByGenre = (genreId: string, page: number): Promise<TMDBPaginatedResponse<Movie>> =>
   fetchTMDB(`/discover/movie?with_genres=${genreId}&sort_by=popularity.desc&page=${page}`)
 
-export const getGenres = (): Promise<{ genres: Genre[] }> =>
-  fetchTMDB('/genre/movie/list')
+export const getGenres = (): Promise<Genre[]> =>
+  fetchTMDB<{ genres: Genre[] }>('/genre/movie/list').then(data => data.genres)
 
 export const getMovieDetail = (id: number): Promise<Movie> =>
   fetchTMDB(`/movie/${id}`)
