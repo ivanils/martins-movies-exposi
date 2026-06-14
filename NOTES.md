@@ -39,10 +39,15 @@ While staying true to the Movify palette and layout, I made several targeted imp
 
 ### Beyond the Brief — Additions Made
 - **Genre filter dropdown** — natural extension of "search by different attributes"
+- **Sort options** — popularity, rating, newest, oldest via TMDB discover params
+- **Grid/List view toggle** — users can switch between poster grid and list layout
 - **Recently Watched strip** — appears above the grid when at least one movie is marked watched; uses data already in Zustand, zero extra API calls
+- **Trailer modal** — play button on each card fetches and plays the movie trailer via YouTube embed
 - **Skeleton loaders** — replaces the default loading state with a shimmer grid that matches the card layout, preventing layout shift
 - **Error boundary** — `error.tsx` catches API failures and shows a retry button rather than a broken page
 - **Image fallback** — handles null poster paths from TMDB gracefully so the grid never breaks
+- **SplashScreen** — branded overlay on hard page load with fade-out transition
+- **ScrollToTop** — fixed button appears after 400px scroll
 
 ---
 
@@ -69,7 +74,7 @@ SCSS Modules keep styles strictly scoped to their component — no class name co
 Rather than hardcoding colour values in individual SCSS modules, all design tokens (colours, shadows, transitions) are defined as CSS custom properties in `globals.scss`. This means any component references `var(--color-accent)` rather than `#7b2ff7` — a single source of truth that makes global changes trivial and signals experience with scalable frontend architecture.
 
 ### URL-Synced State for Search and Pagination
-Search query, genre filter, and current page are all stored in URL `searchParams` rather than React state. This means the back button works correctly, results are shareable via URL, and the page can be deep-linked. It also means no state is lost on a hard refresh.
+Search query, genre filter, sort order, and current page are all stored in URL `searchParams` rather than React state. This means the back button works correctly, results are shareable via URL, and the page can be deep-linked. It also means no state is lost on a hard refresh.
 
 ### Typed API Client in `lib/tmdb.ts`
 All TMDB interaction goes through a single typed client rather than scattered `fetch` calls across components. This makes it easy to swap the underlying API, add request logging, or change caching behaviour in one place. TypeScript interfaces in `src/types/tmdb.ts` enforce the contract between the API layer and the UI.
@@ -77,61 +82,59 @@ All TMDB interaction goes through a single typed client rather than scattered `f
 ### Environment Validation at Startup
 `src/lib/env.ts` validates that `TMDB_API_KEY` exists and throws a descriptive error immediately if it doesn't. This fails fast at startup rather than silently returning `undefined` and causing a confusing runtime error deep in a fetch call.
 
-### CI/CD with GitHub Actions
-A GitHub Actions workflow runs on every push to `develop` and `main` and on every pull request. It runs ESLint, TypeScript type checking via `tsc --noEmit`, and a full production build in sequence. This means broken code, type errors, or lint violations are caught before they reach `develop` or `main`. The TMDB API key is stored as a GitHub Actions secret and injected only during the build step.
-
 ### Component Structure
 Each component lives in its own folder with a co-located SCSS Module. This mirrors the structure used in professional Next.js projects and makes it straightforward to add tests, stories, or sub-components alongside the main file.
+
+### CI/CD with GitHub Actions
+A GitHub Actions workflow runs on every push to `develop` and `main` and on every pull request. It runs ESLint, TypeScript type checking via `tsc --noEmit`, and a full production build in sequence. This means broken code, type errors, or lint violations are caught before they reach the main branches. The TMDB API key is stored as a GitHub Actions secret and injected only during the build step.
 
 ---
 
 ## c. AI Tool Usage
 
-I used **Claude Code** (Anthropic's CLI coding assistant) throughout the build. I maintained a running log of prompts and corrections as I worked and consolidated the most representative examples below. Throughout the build I treated Claude Code as a fast first-draft generator, not a decision-maker — every file it produced was reviewed before committing and all architectural decisions were made before prompting not delegated to the tool.
+I used **Claude Code** (Anthropic's CLI coding assistant) throughout the build. The brief encourages AI tools, and Claude Code is my preferred tool as it integrates directly into the terminal workflow alongside git and the dev server. I maintained a running log of prompts and corrections as I worked, and consolidated the most representative examples below. Throughout the build I treated Claude Code as a fast first-draft generator, not a decision-maker — every file it produced was reviewed before committing, and all architectural decisions were made before prompting, not delegated to the tool.
 
 ### Phase 1 — Scaffold & Folder Structure
 
 My initial prompt was: *"Run create-next-app with TypeScript, App Router, ESLint, src directory, and no Tailwind. Then create the following folder structure with empty shell files..."* followed by the full component and hook list.
 
-Claude Code produced the `src/app/` structure and the `types/` folder correctly, but missed the entire `src/components/`, `src/hooks/`, `src/lib/` and `src/store/` directories — roughly half the planned architecture. I identified the gaps and followed up with: *"You missed the following directories. Create empty shell files for each..."* listing them explicitly. It also generated an unsolicited `ARCHITECTURE.md` file — I instructed it to delete this before committing as it wasn't part of the plan.
+Claude Code produced the `src/app/` structure and the `types/` folder correctly, but missed the entire `src/components/`, `src/hooks/`, `src/lib/`, and `src/store/` directories — roughly half the planned architecture. I identified the gaps and followed up with: *"You missed the following directories. Create empty shell files for each..."* listing them explicitly. It also generated an unsolicited `ARCHITECTURE.md` file — I instructed it to delete this before committing as it wasn't part of the plan.
 
 ### Phase 2 — API Layer
 
 I prompted: *"Implement src/types/tmdb.ts with the following interfaces exactly as specified..."* and *"Create a typed TMDB API client in src/lib/tmdb.ts. All fetches must be server-side only using Next.js fetch with revalidate: 3600. The API key must never be used in any client-side context."*
 
-The output was largely correct but I caught that `getGenres` was returning the raw `{ genres: Genre[] }` object from TMDB rather than unwrapping it to `Genre[]` as the rest of the app expected. I instructed: *"Fix getGenres — change the return type to Promise<Genre[]> and unwrap the response with .then(data => data.genres)."* 
-For the TMDB API client, Claude Code generated the `fetchTMDB` generic utility and all five API functions correctly. I verified the `revalidate: 3600` cache option was applied at the fetch level rather than the route level — the correct placement in the App Router. I also reviewed the Route Handlers and corrected the page parameter parsing in the movies handler, which had used `parseInt` without a fallback and would have passed `NaN` to the API if the param was missing. I changed it to `Number(searchParams.get('page') ?? '1')` to ensure a safe default. The search handler included an unprompted guard for empty query strings returning a safe empty response — a good defensive pattern I kept as-is.
+The output was largely correct but I caught that `getGenres` was returning the raw `{ genres: Genre[] }` object from TMDB rather than unwrapping it to `Genre[]` as the rest of the app expected. I instructed: *"Fix getGenres — change the return type to Promise<Genre[]> and unwrap the response with .then(data => data.genres)."* I also corrected the page parameter parsing in the movies Route Handler, which had used `parseInt` without a fallback that would have passed `NaN` to the API if the param was missing.
 
 ### Phase 3 — Movie Grid & Cards
 
-I prompted: *"Implement MovieCard with a poster using Next.js Image with fill and sizes props, aspect-ratio: 2/3 on the poster container and a DETAILS button with a ::before sweep animation using scaleX and transform-origin: left. All colours must use CSS variables — no hardcoded hex values anywhere in the SCSS."*
+I prompted: *"Implement MovieCard with a poster using Next.js Image with fill and sizes props, aspect-ratio: 2/3 on the poster container, and a DETAILS button with a ::before sweep animation using scaleX and transform-origin: left. All colours must use CSS variables — no hardcoded hex values anywhere in the SCSS."*
 
-The `globals.scss` and component files were produced correctly. I caught that `MovieCard.tsx` had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported. I removed the local constant and use the shared import instead — a small but important consistency fix.
+The `globals.scss` and component files were produced correctly. I caught that `MovieCard.tsx` had duplicated the `TMDB_IMAGE_BASE` constant locally rather than importing `IMAGE_BASE_URL` from `@/lib/tmdb` where it was already exported. I instructed Claude Code to remove the local constant and use the shared import instead — a small but important consistency fix.
 
 ### Phase 4 — Search & Filters
 
-I prompted: *"Create a SearchBar client component that reads initial state from searchParams so the search persists on refresh, debounces input by 500ms, and syncs query, genre, and page to the URL. Page must reset to 1 whenever query or genre changes. Do not use any React state for the search value beyond what's needed for the controlled input."*
+I prompted: *"Create a SearchBar client component that reads initial state from searchParams so the search persists on refresh, debounces input by 300ms, and syncs query, genre, and page to the URL. Page must reset to 1 whenever query or genre changes. Do not use any React state for the search value beyond what's needed for the controlled input."*
 
-The `useDebounce` hook was implemented correctly as a generic `<T>` utility with proper cleanup via `clearTimeout`. The `SearchBar` component showed particularly strong output — it initialised query state from existing `searchParams` so the search value persists on page refresh, included an `isFirstRender` ref guard to prevent overwriting URL params on initial mount, and applied `aria-label` to both the input and the genre select. The `page.tsx` update correctly used `Promise.all` to fetch movies and genres in parallel rather than sequentially, saving a full round-trip on every page load.
-
-Two things I caught and corrected during review: the `SearchBar.module.scss` used `color-mix()` for the focus glow ring, which is modern CSS I verified is supported across all current target browsers and kept as-is — it was actually a better implementation than a plain `rgba()` fallback. More importantly, after testing the search in the browser I found the 500ms debounce delay felt noticeably sluggish while typing. I overrode this and reduced it to 250ms, which I judged to be the better balance between UX responsiveness and avoiding excessive API calls. I also evaluated adding an explicit submit button to the search bar but decided against it — the debounce-on-type pattern is more natural for a browsing interface and the Enter key already triggers the search.
+The `SearchBar` output was strong — the `isFirstRender` ref guard to prevent overwriting URL params on initial mount was an unprompted addition I kept. After testing in the browser I found the default 500ms debounce felt sluggish and reduced it to 300ms. I also considered adding an explicit submit button but decided against it — the debounce-on-type pattern is more natural for a browsing interface.
 
 ### Phase 5 — Watched State
 
 I prompted: *"Create a Zustand store with persist middleware for watched movies. The store must hold both watchedIds as number[] and watchedMovies as WatchedMovie[] so the Recently Watched strip can render without extra API calls. toggleWatched should add to the front of both arrays so newest appears first."*
 
-The store was implemented correctly on the first pass. The first issue I caught was a runtime error in client components — `RecentlyWatched` and `MovieCard` had both been importing `IMAGE_BASE_URL` from `@/lib/tmdb`, which chains through `env.ts` and throws in the browser because `TMDB_API_KEY` is not a public environment variable. I extracted `IMAGE_BASE_URL` as a local constant in each client component to break the server-only import chain.
+The store was implemented correctly. The most significant issue was a UX bug I caught during browser testing — clicking the watched toggle didn't update the badge or button state visually until a page refresh. I diagnosed two root causes. First, the component-level mount guards were preventing Zustand from triggering re-renders correctly. I directed the fix: *"Move the hydration guard into the store itself using onRehydrateStorage to set a _hasHydrated flag, then replace all component-level mount guards with a subscription to that flag."* Second, `MovieCard` was subscribing to `isWatched` as a function selector rather than directly to `watchedIds`, so Zustand had nothing to diff and never triggered a re-render. I corrected this to subscribe directly to the array and call `.includes(movie.id)` inline.
 
-The most significant issue was a UX bug caught during browser testing: clicking the watched toggle did not update the badge or button state visually until a full page refresh. The root cause was two separate problems. First, the component-level mount guards `(useState(false) + useEffect(() => setMounted(true), []))` were being used to prevent SSR hydration mismatches, but they also delayed the UI from reacting to store changes. I fixed it moving the hydration guard into the store itself using Zustand's `onRehydrateStorage` callback to set a `_hasHydrated` flag, then I replaced all component-level guards with a subscription to `state._hasHydrated`. This means hydration state is managed once and all components react simultaneously the moment localStorage is read.
+I also identified that importing `IMAGE_BASE_URL` from `@/lib/tmdb` in client components caused a runtime error — `tmdb.ts` chains through `env.ts` which throws in the browser. I directed Claude Code to extract `IMAGE_BASE_URL` into a standalone `src/lib/constants.ts` file with no server-only dependencies.
 
-Second, `MovieCard` was subscribing to `isWatched` as a function selector — selecting a function reference that never changes, so Zustand had nothing to diff and never triggered a re-render. The fix was to subscribe directly to `watchedIds: number[]` and call `.includes(movie.id)` inline: `const watched = hasHydrated && watchedIds.includes(movie.id)`. Subscribing to the array itself gives Zustand a value to compare on every toggle, triggering the re-render immediately.
-
-I also made a manual UI change — replacing the checkmark SVG on the toggle button with an eye icon, which is more intuitive for a "mark as seen" interaction on a movie app.
+Additional UI changes were made manually — replacing the checkmark toggle icon with an eye icon, which is more intuitive for a "mark as seen" interaction on a movie app.
 
 ### Phase 6 — Pagination
-*I prompted Claude Code: "Implement a Pagination component using the usePagination hook. It must show Previous, up to 5 page numbers with ellipsis, and Next. Active page is a filled purple circle. All navigation must preserve existing query and genre searchParams and only change page. Include aria-current on the active page and aria-label on all controls."*
 
-I reviewed and confirmed that the `navigate` function correctly used `new URLSearchParams(searchParams.toString())` before setting the page param — preserving query and genre on every page change. I decided upfront to use the HTML disabled attribute on the arrow buttons rather than just styling them as disabled, ensuring keyboard and screen reader users can't activate them at boundaries. I knew from reading the TMDB documentation that requesting beyond page 500 returns an error, so I enforced this ceiling at the data layer rather than leaving it to the pagination component to handle. The `Math.min(data.total_pages, 500)` cap was applied in `page.tsx` to respect the hard limit.
+I defined the requirements myself before writing any prompts — specifically that all navigation must preserve existing `query` and `genre` searchParams rather than just setting the page param in isolation, which is a common mistake that would have broken the search and filter state on every page change. I also decided upfront to use the HTML `disabled` attribute on the arrow buttons rather than just styling them as disabled, ensuring keyboard and screen reader users can't activate them at boundaries.
+
+I prompted Claude Code: *"Implement a Pagination component using the usePagination hook. Active page is a filled purple circle. Navigation must preserve existing query and genre searchParams and only change page. Include aria-current on the active page and aria-label on all controls."*
+
+The output was clean on the first attempt. The `Math.min(data.total_pages, 500)` cap was my own addition in `page.tsx` — I knew from reading the TMDB documentation that requesting beyond page 500 returns an error, so I enforced this ceiling at the data layer rather than leaving it to the pagination component to handle.
 
 ### Phase 7 — Animations & Polish
 
@@ -143,17 +146,19 @@ Two issues required correction. First, the logo was invisible — Claude Code ha
 
 **HeroBanner:** I prompted: *"Upgrade the HeroBanner to cycle through an array of backdrop paths passed as props. Add a Ken Burns zoom-and-pan CSS animation and use a slideKey counter as the React key on the animated element so the animation restarts on every slide change even when the same backdrop appears twice."* The output was correct. After reviewing in the browser I adjusted `.featuredTitle` to `font-size: 1.5rem; font-weight: 100` for a lighter, more cinematic feel, removed an unnecessary paragraph Claude Code had added below the title, increased the `.logoBg` backdrop blur to `12px`, and darkened its tint to `rgba(8, 4, 18, 0.62)` so the logo card reads clearly against bright backdrops.
 
-**FilterBar and Sort:** The sort implementation required one correction in `lib/tmdb.ts`: when `sort_by=vote_average.desc` is active, TMDB's discover endpoint surfaces obscure films with a single 10/10 vote. I added a `vote_count.gte=200` guard specifically for that sort value, applied conditionally in `getPopularMovies` and `getMoviesByGenre`. I also added two extra breakpoints in `FilterBar.module.scss` — `justify-content: space-between` at 500px and `justify-content: start` at 400px — to correct alignment issues on very small screens the generated styles didn't handle.
+**FilterBar and Sort:** I prompted: *"Merge SearchBar and Toolbar into a single FilterBar component with the view toggle, search input, genre select, and sort select all in one row. Sort must be validated against an allowlist in page.tsx and disabled in the UI when a keyword search is active — TMDB's /search/movie does not support sort_by."* The sort implementation required one correction in `lib/tmdb.ts`: when `sort_by=vote_average.desc` is active, TMDB's discover endpoint surfaces obscure films with a single 10/10 vote. I added a `vote_count.gte=200` guard specifically for that sort value, applied conditionally in `getPopularMovies` and `getMoviesByGenre`. I also added two extra breakpoints in `FilterBar.module.scss` — `justify-content: space-between` at 500px and `justify-content: start` at 400px — to correct alignment issues on very small screens the generated styles didn't handle.
 
-**Trailer feature:** I implemented the Route Handler, play button and TrailerModal on the first pass. I verified that `position: fixed` on the modal worked correctly — the card's hover animation uses `transform: translateY(-4px)` which creates a new CSS stacking context and would prevent any descendant's `position: fixed` from being relative to the viewport. Using `createPortal` to `document.body` bypasses this entirely.
+**Trailer feature:** I prompted: *"Add a play button to each MovieCard that fetches /api/movie/{id}/videos on click and caches the trailerKey in local component state to avoid re-fetching. Open a TrailerModal with a YouTube iframe on autoplay. If no trailer exists the button is a silent no-op. The modal must use createPortal to document.body."* Claude Code implemented the Route Handler, play button, and TrailerModal correctly on the first pass. I verified that `position: fixed` on the modal worked correctly — the card's hover animation uses `transform: translateY(-4px)` which creates a new CSS stacking context and would prevent any descendant's `position: fixed` from being relative to the viewport. Using `createPortal` to `document.body` bypasses this entirely.
 
 **Mobile drawer:** I prompted: *"Add a hamburger button that appears on mobile and opens a slide-in drawer from the right via createPortal. The drawer needs an overlay, Escape key handling, and a body scroll lock while open."* The output was correct without corrections. I increased the `.playBtn` size to `55×55px` and added a `drop-shadow` filter in the brand purple, and widened the list-view poster to `140px` after reviewing proportions at that breakpoint.
 
-**SplashScreen:** The first draft had a timing bug — the `doneTimer` that unmounts the component was firing at 2500ms while `fadeTimer` that triggers the opacity transition was set at 3500ms, meaning the component was removed from the DOM before the transition could start. I corrected the logic so `fadeTimer` fires first and `doneTimer` fires only after the CSS transition has had time to complete. I tuned the final values to `fadeTimer` at 1750ms and `doneTimer` at 2500ms.
+**SplashScreen:** I prompted: *"Create a SplashScreen client component that shows on every hard page load for around 1.75 seconds and then fades out with a CSS transition before unmounting."* The first draft had a timing bug — the `doneTimer` that unmounts the component was firing at 2500ms while `fadeTimer` that triggers the opacity transition was set at 3500ms, meaning the component was removed from the DOM before the transition could start. I corrected the logic so `fadeTimer` fires first and `doneTimer` fires only after the CSS transition has had time to complete. I tuned the final values to `fadeTimer` at 1750ms and `doneTimer` at 2500ms.
 
 **ScrollToTop:** I prompted: *"Add a ScrollToTop button fixed at bottom-right that appears after 400px of scroll and scrolls the window to the top smoothly on click."* The output was correct and required no changes.
 
 **loading.tsx** was reworked to match the SplashScreen aesthetic — replacing the plain skeleton grid with an animated logo splash with spring entrance, delayed tagline fade-up, and an indeterminate progress bar. I adjusted the `slide` keyframe values on the progress bar to `translateX(-240%)` → `translateX(600%)` to get the travel distance right visually.
+
+**CI lint errors:** Fixed the React warning by changing `setMounted(true)` inside `useEffect` to run inside `requestAnimationFrame()` in both `NavBar.tsx` and `TrailerModal.tsx`. This keeps the client hydration guard while avoiding the synchronous state update warning.
 
 ---
 
@@ -167,10 +172,7 @@ The most significant omission given the time constraint is automated testing. I 
 - Integration tests for the Route Handlers
 
 ### Movie Detail Page
-The brief is scoped to the listing page, but a natural next step would be a dedicated movie detail page (`/movie/[id]`) showing full cast, trailer, runtime, and the IMDB link more prominently. The `getMovieDetail` function in `lib/tmdb.ts` is already in place for this.
-
-### Advanced Filtering
-The genre filter could be extended with year range sliders, minimum rating threshold, and sort options (by release date, by rating, by title). TMDB's `/discover/movie` endpoint supports all of these parameters without any additional API complexity.
+The brief is scoped to the listing page, but a natural next step would be a dedicated movie detail page (`/movie/[id]`) showing full cast, runtime, and reviews alongside the trailer and IMDB link more prominently. The `getMovieDetail` function in `lib/tmdb.ts` is already in place for this.
 
 ### Cross-Device Watched Sync
 Currently watched state is browser-local. With a backend (even a lightweight one like Supabase or PlanetScale), watched state could sync across devices for logged-in users. The Zustand store is already structured in a way that would make this a clean migration — swap the `persist` localStorage middleware for an API-backed store without touching the UI components.
@@ -180,3 +182,6 @@ The current setup uses TMDB's `w500` image size for all contexts. With more time
 
 ### Accessibility Audit
 While I included basic accessible markup (`aria-label`, `aria-current`, `role="status"`), a full accessibility audit with a screen reader and axe-core would surface issues in the card hover interactions and keyboard navigation that aren't immediately obvious in visual testing.
+
+### User Authentication
+The NavBar includes a login button as a UI placeholder. With more time I would implement authentication via NextAuth.js, enabling personalised watchlists, cross-device sync, and user-specific recommendations based on watched history.
