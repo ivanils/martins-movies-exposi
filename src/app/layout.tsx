@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import NavBar from '@/components/NavBar/NavBar'
 import './globals.scss'
 import styles from './layout.module.scss'
 
@@ -18,9 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <header className={styles.header}>
-          <h1 className={styles.headerTitle}>Martin&apos;s Movies</h1>
-        </header>
+        <Suspense>
+          <NavBar />
+        </Suspense>
         <main className={styles.main}>{children}</main>
         <footer className={styles.footer}>
           <p className={styles.footerText}>

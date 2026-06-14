@@ -4,6 +4,7 @@ import MovieGrid from '@/components/MovieGrid/MovieGrid'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import RecentlyWatched from '@/components/RecentlyWatched/RecentlyWatched'
 import Pagination from '@/components/Pagination/Pagination'
+import HeroBanner from '@/components/HeroBanner/HeroBanner'
 
 interface Props {
   searchParams: Promise<{ page?: string; query?: string; genre?: string }>
@@ -24,6 +25,7 @@ export default async function Home({ searchParams }: Props) {
 
   return (
     <>
+      <HeroBanner backdropPath={data.results[0]?.backdrop_path ?? null} />
       <Suspense>
         <SearchBar genres={genres} />
       </Suspense>
