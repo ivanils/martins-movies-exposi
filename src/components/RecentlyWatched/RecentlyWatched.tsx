@@ -1,20 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useWatchedStore } from '@/store/watchedStore'
-import { IMAGE_BASE_URL } from '@/lib/tmdb'
 import styles from './RecentlyWatched.module.scss'
 
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
+
 export default function RecentlyWatched() {
-  const [mounted, setMounted] = useState(false)
+  const hasHydrated = useWatchedStore(state => state._hasHydrated)
   const watchedMovies = useWatchedStore(state => state.watchedMovies)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted || watchedMovies.length === 0) return null
+  if (!hasHydrated || watchedMovies.length === 0) return null
 
   return (
     <section className={styles.section}>

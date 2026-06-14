@@ -10,6 +10,8 @@ export interface WatchedMovie {
 interface WatchedStore {
   watchedIds: number[]
   watchedMovies: WatchedMovie[]
+  _hasHydrated: boolean
+  setHasHydrated: (value: boolean) => void
   toggleWatched: (movie: WatchedMovie) => void
   isWatched: (id: number) => boolean
 }
@@ -19,8 +21,10 @@ export const useWatchedStore = create<WatchedStore>()(
     (set, get) => ({
       watchedIds: [],
       watchedMovies: [],
+      _hasHydrated: false,
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
 
-      toggleWatched: (movie: WatchedMovie) => {
+      toggleWatched: (movie) => {
         const { watchedIds, watchedMovies } = get()
         if (watchedIds.includes(movie.id)) {
           set({
@@ -35,10 +39,13 @@ export const useWatchedStore = create<WatchedStore>()(
         }
       },
 
-      isWatched: (id: number) => get().watchedIds.includes(id),
+      isWatched: (id) => get().watchedIds.includes(id),
     }),
     {
       name: 'martins-movies-watched',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
     }
   )
 )
