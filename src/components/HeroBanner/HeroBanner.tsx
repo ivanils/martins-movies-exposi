@@ -4,41 +4,45 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import styles from './HeroBanner.module.scss'
 
+interface BannerMovie {
+  backdropPath: string
+  title: string
+}
+
 interface Props {
-  backdropPaths: string[]
+  movies: BannerMovie[]
 }
 
 const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280'
 const SLIDE_DURATION = 6000
 
-export default function HeroBanner({ backdropPaths }: Props) {
+export default function HeroBanner({ movies }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [slideKey, setSlideKey] = useState(0)
 
   useEffect(() => {
-    if (backdropPaths.length <= 1) return
+    if (movies.length <= 1) return
     const id = setInterval(() => {
-      setCurrentIndex(i => (i + 1) % backdropPaths.length)
+      setCurrentIndex(i => (i + 1) % movies.length)
       setSlideKey(k => k + 1)
     }, SLIDE_DURATION)
     return () => clearInterval(id)
-  }, [backdropPaths.length])
+  }, [movies.length])
+
+  const currentTitle = movies[currentIndex]?.title ?? ''
 
   return (
     <section className={styles.banner}>
-      {backdropPaths.map((path, i) => {
+      {movies.map((m, i) => {
         const isActive = i === currentIndex
         return (
           <div
-            key={path}
+            key={m.backdropPath}
             className={`${styles.slide}${isActive ? ` ${styles.slideActive}` : ''}`}
           >
-            <div
-              className={styles.slideInner}
-              key={isActive ? slideKey : i}
-            >
+            <div className={styles.slideInner} key={isActive ? slideKey : i}>
               <Image
-                src={`${BACKDROP_BASE}${path}`}
+                src={`${BACKDROP_BASE}${m.backdropPath}`}
                 alt=""
                 fill
                 priority={i === 0}
@@ -49,7 +53,17 @@ export default function HeroBanner({ backdropPaths }: Props) {
           </div>
         )
       })}
+
       <div className={styles.overlay} aria-hidden="true" />
+
+      {/* Current movie title — top left */}
+      {currentTitle && (
+        <div className={styles.movieLabel}>
+          <h2 className={styles.featuredTitle}>{currentTitle}</h2>
+        </div>
+      )}
+
+      {/* Centred logo card */}
       <div className={styles.content}>
         <div className={styles.logoBg}>
           <Image

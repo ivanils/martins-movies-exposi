@@ -29,3 +29,13 @@ export const getGenres = (): Promise<Genre[]> =>
 
 export const getMovieDetail = (id: number): Promise<Movie> =>
   fetchTMDB(`/movie/${id}`)
+
+interface MovieVideo {
+  key: string
+  site: string
+  type: string
+  official: boolean
+}
+
+export const getMovieVideos = (id: number): Promise<{ results: MovieVideo[] }> =>
+  fetchTMDB(`/movie/${id}/videos`)

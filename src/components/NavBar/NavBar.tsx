@@ -38,6 +38,10 @@ export default function NavBar() {
             </li>
           ))}
         </ul>
+
+        <button className={styles.loginBtn} aria-label="Login">
+          Login
+        </button>
       </div>
     </nav>
   )

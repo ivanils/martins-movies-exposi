@@ -1,11 +1,10 @@
 import { Suspense } from 'react'
 import { getGenres, getMoviesByGenre, getPopularMovies, searchMovies } from '@/lib/tmdb'
 import MovieGrid from '@/components/MovieGrid/MovieGrid'
-import SearchBar from '@/components/SearchBar/SearchBar'
 import RecentlyWatched from '@/components/RecentlyWatched/RecentlyWatched'
 import Pagination from '@/components/Pagination/Pagination'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
-import Toolbar from '@/components/Toolbar/Toolbar'
+import FilterBar from '@/components/FilterBar/FilterBar'
 
 const SORT_ALLOWLIST = [
   'popularity.desc',
@@ -40,19 +39,16 @@ export default async function Home({ searchParams }: Props) {
     getGenres(),
   ])
 
+  const bannerMovies = data.results
+    .filter(m => m.backdrop_path !== null)
+    .slice(0, 5)
+    .map(m => ({ backdropPath: m.backdrop_path as string, title: m.title }))
+
   return (
     <>
-      <HeroBanner
-        backdropPaths={data.results
-          .filter(m => m.backdrop_path !== null)
-          .slice(0, 5)
-          .map(m => m.backdrop_path as string)}
-      />
+      <HeroBanner movies={bannerMovies} />
       <Suspense>
-        <SearchBar genres={genres} />
-      </Suspense>
-      <Suspense>
-        <Toolbar />
+        <FilterBar genres={genres} />
       </Suspense>
       <RecentlyWatched />
       <MovieGrid movies={data.results} view={view} />

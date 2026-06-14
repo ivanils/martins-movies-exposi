@@ -71,3 +71,21 @@
     background: rgba(123, 47, 247, 0.08);
   }
 }
+
+.loginBtn {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 8px 22px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background var(--transition-default);
+
+  &:hover {
+    background: var(--color-accent-hover);
+  }
+}
