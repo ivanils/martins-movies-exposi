@@ -1,2 +1,77 @@
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+  animation: slideInLeft 0.3s ease both;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
 .strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  scrollbar-width: none;
+}
+
+.item {
+  flex-shrink: 0;
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &:hover .title {
+    color: var(--color-accent);
+  }
+}
+
+.poster {
+  position: relative;
+  width: 80px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-skeleton-base);
+  flex-shrink: 0;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color var(--transition-default);
 }
