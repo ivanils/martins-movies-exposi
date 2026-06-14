@@ -5,6 +5,13 @@
   animation: pageFadeIn 0.3s ease both;
 }
 
+.empty {
+  text-align: center;
+  padding: 64px 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
