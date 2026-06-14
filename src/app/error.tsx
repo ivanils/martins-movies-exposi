@@ -1,29 +1,13 @@
 'use client'
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
+import styles from './error.module.scss'
+
+export default function Error({ reset }: { reset: () => void }) {
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h2>Something went wrong!</h2>
-      <p>{error?.message || 'An unexpected error occurred'}</p>
-      <button
-        onClick={() => reset()}
-        style={{
-          padding: '0.5rem 1rem',
-          marginTop: '1rem',
-          backgroundColor: '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-        }}
-      >
-        Try again
+    <div className={styles.wrapper}>
+      <p className={styles.message}>We couldn&apos;t load the movies. Please try again.</p>
+      <button className={styles.button} onClick={reset}>
+        <span>Try Again</span>
       </button>
     </div>
   )
