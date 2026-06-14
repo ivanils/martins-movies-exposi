@@ -7,8 +7,7 @@ export default function SplashScreen() {
   const [phase, setPhase] = useState<'in' | 'out' | 'done'>('in')
 
   useEffect(() => {
-    // Begin fade-out at 1 000 ms, unmount at 1 500 ms → total visible ≈ 1.5 s
-    const fadeTimer = setTimeout(() => setPhase('out'), 3500)
+    const fadeTimer = setTimeout(() => setPhase('out'), 1750)
     const doneTimer = setTimeout(() => setPhase('done'), 2500)
     return () => {
       clearTimeout(fadeTimer)
