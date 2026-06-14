@@ -3,6 +3,7 @@ import { getGenres, getMoviesByGenre, getPopularMovies, searchMovies } from '@/l
 import MovieGrid from '@/components/MovieGrid/MovieGrid'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import RecentlyWatched from '@/components/RecentlyWatched/RecentlyWatched'
+import Pagination from '@/components/Pagination/Pagination'
 
 interface Props {
   searchParams: Promise<{ page?: string; query?: string; genre?: string }>
@@ -28,6 +29,9 @@ export default async function Home({ searchParams }: Props) {
       </Suspense>
       <RecentlyWatched />
       <MovieGrid movies={data.results} />
+      <Suspense>
+        <Pagination currentPage={page} totalPages={Math.min(data.total_pages, 500)} />
+      </Suspense>
     </>
   )
 }
