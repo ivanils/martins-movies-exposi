@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getGenres, getMoviesByGenre, getPopularMovies, searchMovies } from '@/lib/tmdb'
 import MovieGrid from '@/components/MovieGrid/MovieGrid'
 import SearchBar from '@/components/SearchBar/SearchBar'
+import RecentlyWatched from '@/components/RecentlyWatched/RecentlyWatched'
 
 interface Props {
   searchParams: Promise<{ page?: string; query?: string; genre?: string }>
@@ -25,6 +26,7 @@ export default async function Home({ searchParams }: Props) {
       <Suspense>
         <SearchBar genres={genres} />
       </Suspense>
+      <RecentlyWatched />
       <MovieGrid movies={data.results} />
     </>
   )

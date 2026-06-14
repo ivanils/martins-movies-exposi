@@ -1,2 +1,15 @@
 .badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--color-header-to);
+  color: var(--color-text-on-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  animation: badgeIn 0.2s ease both;
+  pointer-events: none;
 }
