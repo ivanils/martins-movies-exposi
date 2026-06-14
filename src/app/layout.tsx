@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import NavBar from '@/components/NavBar/NavBar'
 import ScrollToTop from '@/components/ScrollToTop/ScrollToTop'
+import SplashScreen from '@/components/SplashScreen/SplashScreen'
 import './globals.scss'
 import styles from './layout.module.scss'
 
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body>
+        <SplashScreen />
         <Suspense>
           <NavBar />
         </Suspense>
