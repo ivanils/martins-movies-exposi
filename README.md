@@ -1,7 +1,7 @@
 # Martin's Movies
 
-A movie listing web app built as a technical assessment for GCG Health Safety & Hygiene. Powered by [The Movie Database (TMDB) API](https://www.themoviedb.org/).
-Built as a technical assessment for GCG/Exposi. The brief asked for a paginated movie listing with search, watched state persistence, and a design matching the Movify template. See NOTES.md for the full decision log.
+powered by [The Movie Database (TMDB) API](https://www.themoviedb.org/),
+built as a technical assessment for GCG/Exposi. The brief asked for a paginated movie listing with search, watched state persistence, and a design matching the Movify template. See NOTES.md for the full decision log.
 
 🔗 **Live URL:** https://martins-movies-exposi.vercel.app
 
